@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
-from count import Count
-import spacy
 import nltk
+from count import Count
+from entropy import Entropy
+import spacy
+
 
 class Prepro:
     """Class represent preprocesing of text"""
@@ -137,7 +139,10 @@ class Prepro:
         return lemmatized_phrases
 
 if __name__ == "__main__":
+    word = "organización"
     prepro = Prepro("corpus/e990519_mod.htm", "corpus/stopwords.txt")
     vocabulary, phrases = prepro.main()
-    count = Count(vocabulary, phrases)
-    count.main()
+    count = Count(vocabulary, phrases, word)
+    counter, np_w1_w2, p_w1_w2, p_w1, p_w2 = count.main()
+    entropy = Entropy(counter, np_w1_w2 ,p_w1_w2, p_w1, p_w2, vocabulary, word)
+    entropy.main()

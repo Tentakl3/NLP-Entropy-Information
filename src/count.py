@@ -1,17 +1,17 @@
-from itertools import combinations
-import pandas as pd
 import pickle as pk
 
 class Count:
-    def __init__(self, vocabulary, phrases):
+    def __init__(self, vocabulary, phrases, word):
         self.phrases = phrases
         self.vocabulary = vocabulary
         self.total = len(phrases)
+        self.word = word
 
     def main(self):
-        #counter = self.count_word()
-        #self.h()
-        pair_counts = self.pair_counter()
+        counter = self.count_word()
+        np_w1_w2, p_w1_w2, p_w1, p_w2 = self.pair_counter()
+
+        return [counter, np_w1_w2, p_w1_w2, p_w1, p_w2]
 
     def count_word(self):
         counter = {}
@@ -20,30 +20,45 @@ class Count:
             for phrase in self.phrases:
                 if v in phrase:
                     n+=1
-            counter[v] = n
+            counter[v] = n/self.total
         
         return counter
         
     def pair_counter(self):
-        pair_counts = {}
+        np_w1_w2 = {}
+        p_w1_w2 = {}
+        p_w1 = {}
+        p_w2 = {}
 
-        vocabulary_pairs = list(combinations(self.vocabulary, 2))
+        for v1 in self.vocabulary:
+            if self.word != v1:
+                nt_w1_w2 = 0
+                t_w1_w2 = 0
+                t_w1 = 0
+                t_w2 = 0
+                for phrase in self.phrases:
+                    if self.word in phrase and v1 in phrase:
+                        t_w1_w2 += 1
+                    elif self.word in phrase and v1 not in phrase:
+                        t_w1 += 1
+                    elif self.word not in phrase and v1 in phrase:
+                        t_w2 += 1
+                    elif self.word not in phrase and v1 not in phrase:
+                        nt_w1_w2 += 1
 
-        for v1, v2 in vocabulary_pairs:
-            pair_counts[(v1, v2)] = 0
-            for phrase in self.phrases:
-                if v1 in phrase and v2 in phrase:
-                    pair_counts[(v1, v2)] += 1
+                np_w1_w2[(self.word, v1)] = nt_w1_w2/self.total
+                p_w1_w2[(self.word, v1)] = t_w1_w2/self.total
+                p_w1[(self.word, v1)] = t_w1/self.total
+                p_w2[(self.word, v1)] = t_w2/self.total
 
-        with open('corpus/pair_count.pickle', 'wb') as handle:
-            pk.dump(pair_counts, handle, protocol=pk.HIGHEST_PROTOCOL)
+
+        with open('corpus/p_w1_w2.pickle', 'wb') as handle1:
+            pk.dump(p_w1_w2, handle1, protocol=pk.HIGHEST_PROTOCOL)
+
+        with open('corpus/p_w1.pickle', 'wb') as handle2:
+            pk.dump(p_w1, handle2, protocol=pk.HIGHEST_PROTOCOL)
+
+        with open('corpus/p_w2.pickle', 'wb') as handle3:
+            pk.dump(p_w2, handle3, protocol=pk.HIGHEST_PROTOCOL)
                     
-        return pair_counts
-    
-    def h(self):
-        with open('corpus/counter_matrix.pickle', 'rb') as handle:
-            counter_matrix = pk.load(handle)
-        
-        for element in counter_matrix["útil"]:
-            if element != 0:
-                print(element)
+        return [np_w1_w2, p_w1_w2, p_w1, p_w2]
